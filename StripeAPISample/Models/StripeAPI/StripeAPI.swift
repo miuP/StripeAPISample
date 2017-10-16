@@ -99,3 +99,12 @@ extension StripeAPI {
         }
     }
 }
+
+
+extension StripeAPI {
+    struct Connect { }
+}
+
+extension StripeAPI.Connect {
+    struct Account { }
+}

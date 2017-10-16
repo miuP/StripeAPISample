@@ -161,3 +161,11 @@ extension StripeAPI.Entity {
         let width: Float
     }
 }
+
+extension StripeAPI.Entity {
+    struct Connect { }
+}
+
+extension StripeAPI.Entity.Connect {
+    struct Account { }
+}
