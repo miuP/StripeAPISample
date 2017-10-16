@@ -106,5 +106,58 @@ extension StripeAPI {
 }
 
 extension StripeAPI.Connect {
-    struct Account { }
+    struct Account {
+        typealias CreateResponse = StripeAPI.Entity.Connect.Account
+        typealias RetrieveResponse = StripeAPI.Entity.Connect.Account
+        /// https://stripe.com/docs/api#create_customer
+        /// Creates a new customer object.
+        @discardableResult
+        static func create(email: String,
+                           country: String? = nil,
+                           type: String = "custom",
+                           handler: @escaping (Result<CreateResponse, SessionTaskError>) -> Void) -> SessionTask? {
+            let request = CreateRequest(email: email, country: country, type: type)
+            return Session.shared.send(request, handler: handler)
+        }
+
+        private struct CreateRequest: StripeAPIRequest {
+            typealias Response = CreateResponse
+
+            let email: String
+            let country: String?
+            let type: String
+
+            var method: HTTPMethod {
+                return .post
+            }
+
+            var queryParameters: [String : Any]? {
+                var parameters: [String: Any] = [:]
+                parameters["email"] = email
+                if let country = country {
+                    parameters["country"] = country
+                }
+                parameters["type"] = type
+                return parameters
+            }
+
+            var path: String {
+                return "accounts"
+            }
+        }
+
+        private struct RetrieveRequest: StripeAPIRequest {
+            typealias Response = RetrieveResponse
+
+            let accountID: String
+
+            var method: HTTPMethod {
+                return .get
+            }
+
+            var path: String {
+                return "customers/\(accountID)"
+            }
+        }
+    }
 }
