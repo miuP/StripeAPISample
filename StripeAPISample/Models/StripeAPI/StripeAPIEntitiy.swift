@@ -169,4 +169,5 @@ extension StripeAPI.Entity {
 extension StripeAPI.Entity.Connect {
     struct Account: Decodable { }
     struct FeeRefund: Decodable { }
+    struct Fee: Decodable { }
 }

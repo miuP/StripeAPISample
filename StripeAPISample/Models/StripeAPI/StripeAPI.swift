@@ -232,12 +232,12 @@ extension StripeAPI.Connect {
             }
 
             var path: String {
-                return "application_fees\(feeID)/refunds"
+                return "application_fees/\(feeID)/refunds"
             }
         }
 
         /// https://stripe.com/docs/api#retrieve_fee_refund
-        /// Creates a new application fee refund object.
+        /// Retrieves the details of an existing application refund fee.
         @discardableResult
         static func retrieve(feeID: String, refundID: String, handler: @escaping (Result<RetrieveResponse, SessionTaskError>) -> Void) -> SessionTask? {
             let request = RetrieveRequest(feeID: feeID, refundID: refundID)
@@ -245,7 +245,7 @@ extension StripeAPI.Connect {
         }
 
         /// https://stripe.com/docs/api#create_fee_refund
-        /// Retrieves the details of an existing application refund fee.
+        /// Creates a new application fee refund object.
         @discardableResult
         static func create(feeID: String,
                            amount: Int? = nil,
@@ -260,6 +260,90 @@ extension StripeAPI.Connect {
         @discardableResult
         static func all(feeID: String, handler: @escaping (Result<AllResponse, SessionTaskError>) -> Void) -> SessionTask? {
             let request = AllRequest(feeID: feeID)
+            return Session.shared.send(request, handler: handler)
+        }
+    }
+
+    struct Fee {
+        typealias RetrieveResponse = StripeAPI.Entity.Connect.Fee
+        typealias AllResponse = StripeAPI.Entity.ListResponse<StripeAPI.Entity.Connect.Fee>
+
+        private struct RetrieveRequest: StripeAPIRequest {
+            typealias Response = RetrieveResponse
+
+            let feeID: String
+
+            var method: HTTPMethod {
+                return .get
+            }
+
+            var path: String {
+                return "application_fees/\(feeID)"
+            }
+        }
+
+        private struct AllRequest: StripeAPIRequest {
+
+            typealias Response = AllResponse
+
+            let chargeID: String?
+            let created: [String: TimeInterval]?
+            let endingBefore: String?
+            let limit: Int?
+            let startingAfter: String?
+
+            var method: HTTPMethod {
+                return .get
+            }
+
+            var queryParameters: [String : Any]? {
+                var parameters: [String: Any] = [:]
+                if let chargeID = chargeID {
+                    parameters["charge"] = chargeID
+                }
+                if let created = created {
+                    parameters["created"] = created
+                }
+                if let endingBefore = endingBefore {
+                    parameters["ending_before"] = endingBefore
+                }
+                if let limit = limit {
+                    parameters["limit"] = limit
+                }
+                if let startingAfter = startingAfter {
+                    parameters["starting_after"] = startingAfter
+                }
+
+                return parameters
+            }
+
+            var path: String {
+                return "application_fees"
+            }
+        }
+
+        /// https://stripe.com/docs/api#retrieve_fee_refund
+        /// Retrieves the details of an existing application fee.
+        @discardableResult
+        static func retrieve(feeID: String, handler: @escaping (Result<RetrieveResponse, SessionTaskError>) -> Void) -> SessionTask? {
+            let request = RetrieveRequest(feeID: feeID)
+            return Session.shared.send(request, handler: handler)
+        }
+
+        /// https://stripe.com/docs/api#list_fee_refunds
+        /// Returns a list of application fee.
+        @discardableResult
+        static func all(chargeID: String? = nil,
+                        created: [String: TimeInterval]? = nil,
+                        endingBefore: String? = nil,
+                        limit: Int? = nil,
+                        startingAfter: String? = nil,
+                        handler: @escaping (Result<AllResponse, SessionTaskError>) -> Void) -> SessionTask? {
+            let request = AllRequest(chargeID: chargeID,
+                                     created: created,
+                                     endingBefore: endingBefore,
+                                     limit: limit,
+                                     startingAfter: startingAfter)
             return Session.shared.send(request, handler: handler)
         }
     }
