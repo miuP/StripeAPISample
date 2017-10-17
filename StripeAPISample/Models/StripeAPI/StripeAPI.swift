@@ -347,4 +347,155 @@ extension StripeAPI.Connect {
             return Session.shared.send(request, handler: handler)
         }
     }
+
+    struct BankAccount {
+        typealias CreateResponse = StripeAPI.Entity.Connect.BankAccount
+        typealias RetrieveResponse = StripeAPI.Entity.Connect.BankAccount
+        typealias AllResponse = StripeAPI.Entity.ListResponse<StripeAPI.Entity.Connect.BankAccount>
+
+        private struct CreateRequest: StripeAPIRequest {
+            typealias Response = CreateResponse
+
+            let accountID: String
+
+            let accountNumber: String
+            let country: String
+            let currency: String
+            let accountHolderName: String?
+            let accountHolderType: String?
+            let routingNumber: String?
+            let defaultForCurrency: Bool?
+            let metadata: [AnyHashable: String]?
+
+            var method: HTTPMethod {
+                return .post
+            }
+
+            var queryParameters: [String : Any]? {
+                var parameters: [String: Any] = [:]
+                parameters["external_account"] = [
+                    "account_number": accountNumber,
+                    "country": country,
+                    "currency": currency,
+                ]
+                if let accountHolderName = accountHolderName {
+                    parameters["account_holder_name"] = accountHolderName
+                }
+                if let accountHolderType = accountHolderType {
+                    parameters["account_holder_type"] = accountHolderType
+                }
+                if let routingNumber = routingNumber {
+                    parameters["routing_number"] = routingNumber
+                }
+                if let defaultForCurrency = defaultForCurrency {
+                    parameters["default_for_currency"] = defaultForCurrency
+                }
+                if let metadata = metadata {
+                    parameters["metadata"] = metadata
+                }
+                return parameters
+            }
+
+            var path: String {
+                return "accounts/\(accountID)/external_accounts"
+            }
+        }
+
+        private struct RetrieveRequest: StripeAPIRequest {
+            typealias Response = RetrieveResponse
+
+            let accountID: String
+
+            let bankAccountID: String
+
+            var method: HTTPMethod {
+                return .get
+            }
+
+            var path: String {
+                return "accounts/\(accountID)/external_accounts/\(bankAccountID)"
+            }
+        }
+
+        private struct AllRequest: StripeAPIRequest {
+            typealias Response = AllResponse
+
+            let accountID: String
+
+            let endingBefore: String?
+            let limit: Int?
+            let startingAfter: String?
+
+            var method: HTTPMethod {
+                return .get
+            }
+
+            var queryParameters: [String : Any]? {
+                var parameters: [String: Any] = [:]
+                if let endingBefore = endingBefore {
+                    parameters["ending_before"] = endingBefore
+                }
+                if let limit = limit {
+                    parameters["limit"] = limit
+                }
+                if let startingAfter = startingAfter {
+                    parameters["starting_after"] = startingAfter
+                }
+
+                return parameters
+            }
+
+            var path: String {
+                return "accounts/\(accountID)/external_accounts"
+            }
+        }
+
+        /// https://stripe.com/docs/api#account_retrieve_bank_account
+        /// Retrieves the details of an existing bank account.
+        @discardableResult
+        static func retrieve(accountID: String, bankAccountID: String, handler: @escaping (Result<RetrieveResponse, SessionTaskError>) -> Void) -> SessionTask? {
+            let request = RetrieveRequest(accountID: accountID, bankAccountID: bankAccountID)
+            return Session.shared.send(request, handler: handler)
+        }
+
+        /// https://stripe.com/docs/api#account_create_bank_account
+        /// Creates a new bank account object.
+        @discardableResult
+        static func create(accountID: String,
+                           accountNumber: String,
+                           country: String,
+                           currency: String,
+                           accountHolderName: String? = nil,
+                           accountHolderType: String? = nil,
+                           routingNumber: String? = nil,
+                           defaultForCurrency: Bool? = nil,
+                           metadata: [AnyHashable: String]? = nil,
+                           handler: @escaping (Result<CreateResponse, SessionTaskError>) -> Void) -> SessionTask? {
+            let request = CreateRequest(accountID: accountID,
+                                        accountNumber: accountNumber,
+                                        country: country,
+                                        currency: currency,
+                                        accountHolderName: accountHolderName,
+                                        accountHolderType: accountHolderType,
+                                        routingNumber: routingNumber,
+                                        defaultForCurrency: defaultForCurrency,
+                                        metadata: metadata)
+            return Session.shared.send(request, handler: handler)
+        }
+
+        /// https://stripe.com/docs/api#account_list_bank_accounts
+        /// Returns a list of bank account.
+        @discardableResult
+        static func all(accountID: String,
+                        endingBefore: String? = nil,
+                        limit: Int? = nil,
+                        startingAfter: String? = nil,
+                        handler: @escaping (Result<AllResponse, SessionTaskError>) -> Void) -> SessionTask? {
+            let request = AllRequest(accountID: accountID,
+                                     endingBefore: endingBefore,
+                                     limit: limit,
+                                     startingAfter: startingAfter)
+            return Session.shared.send(request, handler: handler)
+        }
+    }
 }
